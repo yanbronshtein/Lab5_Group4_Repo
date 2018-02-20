@@ -37,7 +37,8 @@ public class Search {
 	private static double whiteMeanR = 21.9;
 	private static double whiteMeanG = 21.68;
 	private static double whiteMeanB = 15.56;
-	
+	private static final int FILTER_OUT = 30;
+	private int filterControl;
 
 	public Search(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, Odometer odometer, 
 			EV3UltrasonicSensor usSensor) {
@@ -64,7 +65,7 @@ public class Search {
 			rightMotor.setAcceleration(500);
 			leftMotor.forward();
 			rightMotor.backward();
-			while(leftMotor.isMoving()) {
+			//while(leftMotor.isMoving()) {
 				//double distance = getDistance();
 				double dist = getDistance();
 				if(dist< 60) {
@@ -74,16 +75,24 @@ public class Search {
 					angle = odometer.getT();
 					findObject(dist, TB);
 					leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), false);
-					//navigation.travelTo(LLx, LLy);
-					navigation.turnTo(angle+10);
+					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
+					while(true) {
+						if(Math.abs(LLx - odometer.getX()) < 5 && Math.abs(LLy - odometer.getY()) < 5) {
+							leftMotor.stop(true);
+							rightMotor.stop();
+							break;
+						}
+					}
+					navigation.turnTo(angle + 15);
+					dist = getDistance();
 				}
 				if(Math.abs(odometer.getT() - 90) <= 8) {
 					leftMotor.stop(true);
 					rightMotor.stop();
 					notFinished = false;
+					break;
 				}
-			}	
+			//}	
 		}
 //		notFinished=true;
 //		navigation.travelTo(URx,LLy);
@@ -166,10 +175,15 @@ public class Search {
 		leftMotor.forward();
 		rightMotor.forward();
 		while(true) {
-			if(getDistance() < 3.6) {
+			if(getDistance() < 3.5) {
 				leftMotor.stop(true);
 				rightMotor.stop();
 				break;
+			}
+			if(getDistance() > distance + 10) {
+				leftMotor.stop(true);
+				rightMotor.stop();
+				return;
 			}
 		}
 		int color = getColor();
@@ -245,17 +259,34 @@ public class Search {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
         // this instance
 		float[] usDistance = new float[3];
-		List<Double> distance = new ArrayList<Double>();
-		//sampleProvider.fetchSample(usDistance, 0);
-		for(int i = 0; i < 9; i++) {
-			sampleProvider.fetchSample(usDistance, 0);
-			LCD.drawString("us Distance: " + usDistance[0], 0, 5);
-			//distance[i] = usDistance[0]*100;
-			distance.add((double)usDistance[0]*100);
-			Delay.msDelay(30);
-		}
-		Collections.sort(distance);
-		return distance.get(9/2);
+		sampleProvider.fetchSample(usDistance, 0);
+		double distance = usDistance[0]*100;
+//		List<Double> distance = new ArrayList<Double>();
+//		//sampleProvider.fetchSample(usDistance, 0);
+//		for(int i = 0; i < 9; i++) {
+//			sampleProvider.fetchSample(usDistance, 0);
+//			LCD.drawString("us Distance: " + usDistance[0], 0, 5);
+//			//distance[i] = usDistance[0]*100;
+//			distance.add((double)usDistance[0]*100);
+//			Delay.msDelay(30);
+//		}
+//		Collections.sort(distance);
+//		return distance.get(9/2);
+		while (distance >= 60 && filterControl < FILTER_OUT) {
+		      // bad value, do not set the distance var, however do increment the
+		      // filter value
+		      filterControl++;
+		 } 
+		if (distance >= 60 && filterControl >= FILTER_OUT) {
+			// We have repeated large values, so there must actually be nothing
+			// there: leave the distance alone
+		    	return distance;
+		 } else {
+		      // distance went below 255: reset filter and leave
+		      // distance alone.
+		      filterControl = 0;
+		      return distance;
+		 }
 	}
 	
 	private static int convertDistance(double radius, double distance) {

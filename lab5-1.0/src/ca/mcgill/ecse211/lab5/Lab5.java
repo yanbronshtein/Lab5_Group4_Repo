@@ -122,7 +122,7 @@ public class Lab5 {
 			navigation.travelTo(LLx*TILE_SIZE,LLy*TILE_SIZE);
 			Sound.beep();
 			search.search(LLx*TILE_SIZE, LLy*TILE_SIZE, URx*TILE_SIZE, URy*TILE_SIZE, TB);
-			navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);
+			//navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);
 
 
 			
