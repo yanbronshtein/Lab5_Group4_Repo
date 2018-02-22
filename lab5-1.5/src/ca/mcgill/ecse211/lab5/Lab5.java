@@ -1,5 +1,5 @@
 /**
- * Lab4.java
+ * Lab5.java
  * 
  */
 
@@ -39,6 +39,7 @@ public class Lab5 {
 	public static int LLy = 2;
 	public static int URx = 6;
 	public static int URy = 6;
+	//red-1, blue-2, yellow-3, white-4
 	public static int TB = 4;
 	public static int SC = 0;
 
@@ -113,16 +114,16 @@ public class Lab5 {
 			Thread odoDisplayThread = new Thread(odometryDisplay);
 			odoDisplayThread.start();
 
-			//ultrasoniclocalizer.UltrasonicLocalization();
-			//lightLocalizer.LLocalization(SC);
-			//do {
-			//	buttonChoice = Button.waitForAnyPress();
-			//} while (buttonChoice != Button.ID_LEFT);
+			ultrasoniclocalizer.UltrasonicLocalization();
+			lightLocalizer.LLocalization(SC);
+			do {
+				buttonChoice = Button.waitForAnyPress();
+			} while (buttonChoice != Button.ID_LEFT);
 			odometer.setXYT(TILE_SIZE, TILE_SIZE, 0);
 			navigation.travelTo(LLx*TILE_SIZE,LLy*TILE_SIZE);
 			Sound.beep();
 			search.search(LLx*TILE_SIZE, LLy*TILE_SIZE, URx*TILE_SIZE, URy*TILE_SIZE, TB);
-			navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);
+			//navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);
 
 
 			
