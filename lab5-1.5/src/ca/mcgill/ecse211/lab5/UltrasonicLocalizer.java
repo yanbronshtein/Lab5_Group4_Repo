@@ -1,3 +1,8 @@
+
+/**This class implements ultrasonic localization using both falling and rising edge
+ * @name UltrasonicLocalizer.java
+ * @author Yin Zhang
+ * @author Lily Li */
 package ca.mcgill.ecse211.lab5;
 
 import java.util.ArrayList;
@@ -27,6 +32,8 @@ public class UltrasonicLocalizer {
 	private double distance[];
 	
 	
+	
+	/**Constructor for Ultrasonic Localization */
 	public UltrasonicLocalizer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, LocalizationType type,
 			Odometer odometer, EV3UltrasonicSensor usSensor) {
 		this.leftMotor = leftMotor;
@@ -36,6 +43,8 @@ public class UltrasonicLocalizer {
 		this.usSensor = usSensor;
 		
 	}
+	
+	/** Ultrasonic Localization*/
 	public void UltrasonicLocalization() {
 		double alpha, beta;
 		//rising edge
@@ -130,6 +139,9 @@ public class UltrasonicLocalizer {
 		}
 		
 	}
+	
+	/**This method calculates the minimum angle the robot must turn to face the desired angle and then rotates the robot
+	 * @param theta */
 	public void turnTo(double theta) {
 		double turnAngle;
 		turnAngle = theta - odometer.getT();
@@ -146,13 +158,10 @@ public class UltrasonicLocalizer {
 		rightMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, turnAngle), false);
 	}
 	
-	private static int convertAngle(double radius, double width, double angle) {
-		return convertDistance(radius, Math.PI * width * angle / 360.0);
-	}
-	private static int convertDistance(double radius, double distance) {
-		return (int) ((180.0 * distance) / (Math.PI * radius));
-	}
 	
+	/** This method takes readings from an ultrasonic sensor and uses a median filter of five measurements.
+	 * The ultrasonic sensor is sampled every 30 ms
+	 * @returns median filtered distance  */
 	public double getDistance() {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
         // this instance
@@ -169,6 +178,11 @@ public class UltrasonicLocalizer {
 		Collections.sort(distance);
 		return distance.get(5/2);
 	}
+	
+	
+	/** This homemade method takes two measurements of the current time where 
+	 * a is the first measurement and b is the second. 
+	 * Keeps taking measurements until desired time is reached */
 	public static void sleep(int time) {
 		long a = System.currentTimeMillis();
 		long b = System.currentTimeMillis();
@@ -176,4 +190,28 @@ public class UltrasonicLocalizer {
 			b = System.currentTimeMillis();
 		}
 	}
+	
+	/**
+	 * Determine how much the motor must rotate for vehicle to reach a certain distance
+	 * 
+	 * @param radius
+	 * @param distance
+	 * @return
+	 */
+	private static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+
+	/**
+	 * Determine the angle wheel motors need to rotate to for robot to turn to desired angle 
+	 * 
+	 * @param radius
+	 * @param TRACK
+	 * @param angle
+	 * @return
+	 */
+	private static int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, Math.PI * width * angle / 360.0);
+	}
+
 }

@@ -1,3 +1,9 @@
+
+/**
+ * This class uses ratios to perform color calibration for the light sensor so that it can detected colored blocks
+ * @name Search.java
+ * @author Rene Gagnon
+ *  */
 package ca.mcgill.ecse211.lab5;
 
 import java.util.ArrayList;
@@ -69,6 +75,8 @@ public class Search {
 	private static final int FILTER_OUT = 80;
 	private int filterControl;
 
+	
+	/**Constructor for Search Class */
 	public Search(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, Odometer odometer, 
 			EV3UltrasonicSensor usSensor) {
 		this.leftMotor = leftMotor;
@@ -79,6 +87,8 @@ public class Search {
 		this.cSensor = new EV3ColorSensor(LocalEV3.get().getPort("S4"));
 	}
 	
+	
+	/**This method  */
 	public void search(double LLx, double LLy, double URx, double URy, int TB) {	
 		//first point
 		double angle=0;
@@ -255,6 +265,10 @@ public class Search {
 //        }
 	}
 	
+	/**This method navigates towards a block given the distance away and the Target block's color ID
+	 * The robot moves forward until it is within 3.5 cm away or 12cm farther than the desired distance
+	 * @param distance
+	 * @param TB */
 	public void findObject(double distance, int TB) {
 		//leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, distance), true);
 		//rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, distance), true);
@@ -284,6 +298,9 @@ public class Search {
 			Sound.twoBeeps();
 		}
 	}
+	
+	/**This method use RGB values to determine the color of the block by calling getColor
+	 * @returns TB value  */
 	public int getColor() {
 		sampleProvider = cSensor.getRGBMode();
 	    sampleSize = sampleProvider.sampleSize();
@@ -304,6 +321,11 @@ public class Search {
 //		}
 //		return 0;
 	}
+	
+	/**This method uses RGB readings from the sensor and calls withinRange() on these values
+	 * @param R
+	 * @param G
+	 * @param B   */
 	public  int WhatColor(double R, double G, double B) {
 		double sampleSum = R+G+B;
 		double sampleR_Ratio=R/sampleSum;
@@ -370,6 +392,11 @@ public class Search {
 //		}
 //		return false;
 //	}
+	
+	
+	/**This method applies a basic filter to throw out sensor readings greater than 150 and less than FILTER_OUT
+	 * and those greater than FILTER_OUT
+	 * @returns filtered distance   */
 	public double getDistanceStraight() {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
         // this instance
@@ -403,6 +430,9 @@ public class Search {
 		      return distance;
 		 }
 	}
+	
+	/**This method applies a median filter with a sampling rate of 30 ms 
+	 * @returns median filtered distance */
 	public double getDistanceTurn() {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
         // this instance
@@ -422,6 +452,9 @@ public class Search {
 		Collections.sort(distance);
 		return distance.get(5/2);
 	}
+	
+	/** This method compares the color sensor reading with that of the target give a tolerance
+	 * @returns true if the difference is acceptable */
 	public  boolean whithinRange(double value,double target, double tolerance) {
 		if(Math.abs(value-target)<=tolerance) {
 			return true;
@@ -430,10 +463,28 @@ public class Search {
 		}
 	}
 	
+	/**
+	 * This method allows the conversion of a distance to the total rotation of each
+	 * wheel need to cover that distance.
+	 * 
+	 * @param radius
+	 * @param distance
+	 * @return
+	 */
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
-	private static int convertAngle(double radius, double width, double angle) {
-		return convertDistance(radius, Math.PI * width * angle / 360.0);
-	}	
+
+	/**
+	 * This method helps the robot determine the angle wheel motors need to rotate to for robot to turn to desired angle 
+	 * 
+	 * @param radius
+	 * @param TRACK
+	 * @param angle
+	 * @return
+	 */
+	private static int convertAngle(double radius, double TRACK, double angle) {
+		return convertDistance(radius, Math.PI * TRACK * angle / 360.0);
+	}
+
 }

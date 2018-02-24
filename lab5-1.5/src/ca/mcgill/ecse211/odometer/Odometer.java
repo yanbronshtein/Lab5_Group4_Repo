@@ -1,5 +1,7 @@
 /**
- * This class is meant as a skeleton for the odometer class to be used.
+ * This class implements an Odometer
+ * @name Odometer.java
+
  * 
  * @author Rodrigo Silva
  * @author Dirk Dubois

@@ -1,3 +1,6 @@
+/**Display class for EV3 readings
+ * @name Display.java*/
+
 package ca.mcgill.ecse211.lab5;
 
 import java.text.DecimalFormat;

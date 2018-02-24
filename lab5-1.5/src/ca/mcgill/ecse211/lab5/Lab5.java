@@ -28,21 +28,46 @@ public class Lab5 {
 	private static final EV3UltrasonicSensor  usSensor= new EV3UltrasonicSensor
 			(LocalEV3.get().getPort("S1"));
 	//private static final Port usPort = LocalEV3.get().getPort("S4");
+	
+	/**Tested wheel radius cm */
 	public static final double WHEEL_RAD = 2.16;
+	
+	/**Width of robot cm */
 	public static final double TRACK = 12.2;
+	
+	/**right wheel radius cm */
 	public static final double leftRadius = 2.2;
+	/**right wheel radius cm */
 	public static final double rightRadius = 2.2;
+	
+	/**dimension of tile cm */
 	public static final double TILE_SIZE = 30.48;
+	
+	/**Speed in deg/s of wheel motors */
 	public static final int ROTATE_SPEED = 100;
 
+	
+	/** Bottom Left x coordinate of search area */
 	public static int LLx = 2;
+	
+	/** Bottom Left x coordinate of search area */
 	public static int LLy = 2;
+	
+	/** Upper Right x coordinate of search area */
 	public static int URx = 6;
+	/** Upper Right y coordinate of search area */
 	public static int URy = 6;
-	//red-1, blue-2, yellow-3, white-4
+	
+	/**Color of target block 
+	 * red-1, blue-2, yellow-3, white-4  */
 	public static int TB = 4;
+	
+	/**Starting corner. 0 is bottom left corner */
 	public static int SC = 0;
 
+	
+	/**This is the main method
+	 * @throws OdometerExceptions */
 	public static void main(String[] args) throws OdometerExceptions {
 
 		int buttonChoice;
@@ -59,7 +84,7 @@ public class Lab5 {
 		//Avoid avoid = new Avoid(leftMotor, rightMotor);
 		do{
 			lcd.clear();
-
+ 
 			lcd.drawString("< Left | Right >", 0, 0);
 			lcd.drawString(" Iden- | The    ", 0, 1);
 			lcd.drawString(" fy    | whole  ", 0, 2);
