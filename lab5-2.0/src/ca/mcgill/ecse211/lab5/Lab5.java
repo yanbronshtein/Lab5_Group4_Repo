@@ -44,6 +44,8 @@ public class Lab5 {
 		//Hello World Nivvy bot speaking
 		// Hey nivvy wahts up
 		//hey it s albert
+		// merging testb blabla bla
+
 		// Odometer related objects
 		Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD); 
 		Navigation navigation = new Navigation(leftMotor, rightMotor);
