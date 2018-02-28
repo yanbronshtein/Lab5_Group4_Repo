@@ -40,6 +40,8 @@ public class Lab5 {
 
 	public static void main(String[] args) throws OdometerExceptions {
 		int buttonChoice;
+		
+		//Hello World Nivvy bot speaking
 		// Odometer related objects
 		Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD); 
 		Navigation navigation = new Navigation(leftMotor, rightMotor);
