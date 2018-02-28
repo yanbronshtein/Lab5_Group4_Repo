@@ -29,9 +29,9 @@ public class Lab5 {
 	public static final double TILE_SIZE = 30.48;
 	public static final int ROTATE_SPEED = 100;
 
-	public static int LLx = 2;
+	public static int LLx = 3;
 	public static int LLy = 3;
-	public static int URx = 6;
+	public static int URx = 7;
 	public static int URy = 7;
 	//red-1, blue-2, yellow-3, white-4
 	public static int TB = 4;

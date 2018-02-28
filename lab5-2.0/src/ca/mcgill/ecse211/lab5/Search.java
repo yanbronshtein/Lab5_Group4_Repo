@@ -187,10 +187,18 @@ public class Search {
 			LCD.drawString("Object Detected", 0, 0);
 			//LCD.drawString("Red", 0, 1);
 			Sound.beep();
+			float []colorSample = new float[sampleSize];
+			sampleProvider.fetchSample(colorSample, 0);
+			System.out.println("Found Block");
+			System.out.println(colorSample[0]+"\t"+colorSample[1]+"\t"+colorSample[2]);
 			return true;
 		}
 		else {
 			Sound.twoBeeps();
+			float []colorSample = new float[sampleSize];
+			sampleProvider.fetchSample(colorSample, 0);
+			System.out.println("didnt Found Block");
+			System.out.println(colorSample[0]+"\t"+colorSample[1]+"\t"+colorSample[2]);
 			return false;
 		}
 	}
