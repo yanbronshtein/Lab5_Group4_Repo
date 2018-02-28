@@ -1,8 +1,3 @@
-/**
- * Lab5.java
- * 
- */
-
 package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.lab5.UltrasonicLocalizer.LocalizationType;
@@ -19,7 +14,6 @@ import lejos.hardware.Sound;
 import lejos.hardware.sensor.EV3GyroSensor;
 
 public class Lab5 {
-
 	// Motor Objects, and Robot related parameters
 	private static final EV3LargeRegulatedMotor leftMotor =
 			new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
@@ -28,7 +22,6 @@ public class Lab5 {
 	private static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	private static final EV3UltrasonicSensor  usSensor= new EV3UltrasonicSensor
 			(LocalEV3.get().getPort("S1"));
-	//private static final Port usPort = LocalEV3.get().getPort("S4");
 	public static final double WHEEL_RAD = 2.16;
 	public static final double TRACK = 12.2;
 	public static final double leftRadius = 2.2;
@@ -37,17 +30,16 @@ public class Lab5 {
 	public static final int ROTATE_SPEED = 100;
 
 	public static int LLx = 2;
-	public static int LLy = 2;
+	public static int LLy = 3;
 	public static int URx = 6;
-	public static int URy = 6;
+	public static int URy = 7;
 	//red-1, blue-2, yellow-3, white-4
 	public static int TB = 4;
-	public static int SC = 1;
+	//starting corner
+	public static int SC = 0;
 
 	public static void main(String[] args) throws OdometerExceptions {
-
 		int buttonChoice;
-
 		// Odometer related objects
 		Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD); 
 		Navigation navigation = new Navigation(leftMotor, rightMotor);
@@ -67,7 +59,7 @@ public class Lab5 {
 			lcd.drawString("       | lab ", 0, 3);
 			buttonChoice = Button.waitForAnyPress();
 		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
-
+		//color identification 
 		if (buttonChoice == Button.ID_LEFT) {
 			lcd.clear();
 			while(true) {
@@ -98,6 +90,7 @@ public class Lab5 {
 			}
 
 		} else {
+			//entire lab5
 			do {
 				// clear the display
 				lcd.clear();
@@ -115,24 +108,24 @@ public class Lab5 {
 			Thread odoDisplayThread = new Thread(odometryDisplay);
 			odoDisplayThread.start();
 
+			//localization
 			ultrasoniclocalizer.UltrasonicLocalization();
 			lightLocalizer.LLocalization(SC);
 			do {
 				buttonChoice = Button.waitForAnyPress();
 			} while (buttonChoice != Button.ID_LEFT);
 
+			//travel to lower left corner from the outer corner
 			if(SC == 2 || SC == 3) {
-				navigation.travelTo(LLx, URy);
-				navigation.travelTo(LLx, LLy);
+				navigation.travelTo(LLx*TILE_SIZE, URy*TILE_SIZE);
+				navigation.travelTo(LLx*TILE_SIZE, LLy*TILE_SIZE);
+
 			}else {
 				navigation.travelTo(LLx*TILE_SIZE,LLy*TILE_SIZE);
 			}
 			Sound.beep();
 			search.search(LLx*TILE_SIZE, LLy*TILE_SIZE, URx*TILE_SIZE, URy*TILE_SIZE, TB);
-			navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);
-
-
-			
+			navigation.travelTo(URx*TILE_SIZE, URy*TILE_SIZE);	
 		}
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);

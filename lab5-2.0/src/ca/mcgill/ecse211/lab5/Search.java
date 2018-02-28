@@ -15,7 +15,13 @@ import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
-
+/**
+ * this class implements the search method that makes the robot to travel to lower left
+ * corner and the upper right corner, and at each corner, turn 90 degrees to search if 
+ * there is an object
+ * @author apple
+ *
+ */
 public class Search {
 	private EV3LargeRegulatedMotor leftMotor;
 	private EV3LargeRegulatedMotor rightMotor;
@@ -25,19 +31,6 @@ public class Search {
 	private EV3ColorSensor cSensor;
 	private static SampleProvider sampleProvider;
 	private static int sampleSize;
-//	private static int thresholdRed = 10;
-//	private static double redMeanR = 14.3;
-//	private static double redMeanG = 2.146;
-//	private static double redMeanB = 1.626;
-//	private static double blueMeanR = 2.34;
-//	private static double blueMeanG = 5.82;
-//	private static double blueMeanB = 7.4;
-//	private static double yellowMeanR = 37.3;
-//	private static double yellowMeanG = 21.7;
-//	private static double yellowMeanB = 3.85;
-//	private static double whiteMeanR = 21.9;
-//	private static double whiteMeanG = 21.68;
-//	private static double whiteMeanB = 15.56;
 	private static double redMeanR = 14.3539221;
 	private static double redMeanG = 2.1460785;
 	private static double redMeanB = 1.6264707;
@@ -69,6 +62,7 @@ public class Search {
 	private static double tolerance=0.2;
 	private static final int FILTER_OUT = 80;
 	private int filterControl;
+	private int thresholdDistance = 120;
 
 	public Search(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, Odometer odometer, 
 			EV3UltrasonicSensor usSensor ) {
@@ -79,13 +73,11 @@ public class Search {
 		this.navigation = new Navigation(leftMotor, rightMotor);
 		this.cSensor = new EV3ColorSensor(LocalEV3.get().getPort("S4"));
 	}
-	
+
 	public void search(double LLx, double LLy, double URx, double URy, int TB) {	
 		//first point
 		double angle=0;
 		boolean notFinished = true;
-		double distX=0;
-		double distY=0;
 		navigation.turnTo(0);
 		leftMotor.stop(true);
 		rightMotor.stop();
@@ -97,169 +89,83 @@ public class Search {
 			rightMotor.setAcceleration(500);
 			leftMotor.forward();
 			rightMotor.backward();
-			//while(leftMotor.isMoving()) {
-				//double distance = getDistance();
-				double dist = getDistanceTurn();
-				if(dist< 120) {
-					leftMotor.stop(true);
-					rightMotor.stop();
-					Sound.beepSequenceUp();
-					angle = odometer.getT();
-//					distX = odometer.getX();
-//					distY = odometer.getY();
-					findObject(dist, TB);
-                    leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-					while(true) {
-						if(Math.abs(LLx - odometer.getX()) < 10 && Math.abs(LLy - odometer.getY()) < 10) {
-							leftMotor.stop(true);
-							rightMotor.stop();
-							break;
-						}
+			double dist = getDistanceTurn();
+			if(dist< thresholdDistance) {
+				leftMotor.stop(true);
+				rightMotor.stop();
+				Sound.beepSequenceUp();
+				angle = odometer.getT();
+				if(findObject(dist, TB)) {
+					return;
+				}
+				//moves backward if it is a false positive until the robot is close to the corner
+				leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
+				rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
+				while(true) {
+					if(Math.abs(LLx - odometer.getX()) < 10 && Math.abs(LLy - odometer.getY()) < 10) {
+						leftMotor.stop(true);
+						rightMotor.stop();
+						break;
 					}
-					navigation.turnTo(angle+10);
 				}
-				if(Math.abs(odometer.getT() - 90) <= 8) {
-					leftMotor.stop(true);
-					rightMotor.stop();
-					notFinished = false;
-				}
-			//}	
+				//turn 10 degrees to avoid detecting the same block again
+				navigation.turnTo(angle+10);
+			}
+			//stop if the robot has done searching for 90 degrees
+			if(Math.abs(odometer.getT() - 90) <= 8) {
+				leftMotor.stop(true);
+				rightMotor.stop();
+				notFinished = false;
+			}
 		}
-		//search at the second corner
-//        notFinished=true;
-       navigation.travelTo(URx,LLy);
-//        navigation.turnTo(0);
-//        while(notFinished) {
-//            //leftMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, angle-270), true);
-//            //rightMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, angle-270), true);
-//            leftMotor.setSpeed(80);
-//            rightMotor.setSpeed(80);
-//            leftMotor.setAcceleration(500);
-//            rightMotor.setAcceleration(500);
-//            leftMotor.backward();
-//            rightMotor.forward();
-//            //while(leftMotor.isMoving()) {
-//                //double distance = getDistance();
-//                double dist = getDistance();
-//                if(dist< 60) {
-//                    leftMotor.stop(true);
-//                    rightMotor.stop();
-//                    Sound.beepSequenceUp();
-//                    angle = odometer.getT();
-//                    findObject(dist, TB);
-//                    leftMotor.setSpeed(100);
-//                    rightMotor.setSpeed(100);
-//                    leftMotor.setAcceleration(500);
-//                    rightMotor.setAcceleration(500);
-//                    leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-//					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-//					while(true) {
-//						if(Math.abs(URx - odometer.getX()) < 5 && Math.abs(LLy - odometer.getY()) < 5) {
-//							leftMotor.stop(true);
-//							rightMotor.stop();
-//							break;
-//						}
-//					}
-//                    navigation.turnTo(angle-10);
-//                }
-//            //}
-//            if(Math.abs(odometer.getT() -270) <=8) {
-//                leftMotor.stop(true);
-//                rightMotor.stop();
-//                notFinished = false;
-//            }
-//        }
-//        //search at the third corner
-        
-        navigation.travelTo(URx,URy);
-        navigation.turnTo(270);
-        notFinished = true;
-        while(notFinished) {
-            //leftMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, 90), true);
-            //rightMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, 90), true);
-            leftMotor.setSpeed(40);
-            rightMotor.setSpeed(40);
-            leftMotor.setAcceleration(500);
-            rightMotor.setAcceleration(500);
-            leftMotor.backward();
-            rightMotor.forward();
-            //while(leftMotor.isMoving()) {
-                //double distance = getDistance();
-                double dist = getDistanceStraight();
-                if(dist< 120) {
-                    leftMotor.stop(true);
-                    rightMotor.stop();
-                    Sound.beepSequenceUp();
-                    angle = odometer.getT();
-                    findObject(dist, TB);
-                    leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-					while(true) {
-						if(Math.abs(URx - odometer.getX()) < 10 && Math.abs(URy - odometer.getY()) < 10) {
-							leftMotor.stop(true);
-							rightMotor.stop();
-							break;
-						}
+		//travel to upper right corner 
+		navigation.travelTo(URx,LLy);
+
+		//search at the upper right corner
+		navigation.travelTo(URx,URy);
+		navigation.turnTo(270);
+		notFinished = true;
+		while(notFinished) {
+			leftMotor.setSpeed(40);
+			rightMotor.setSpeed(40);
+			leftMotor.setAcceleration(500);
+			rightMotor.setAcceleration(500);
+			leftMotor.backward();
+			rightMotor.forward();
+			double dist = getDistanceStraight();
+			if(dist< thresholdDistance) {
+				leftMotor.stop(true);
+				rightMotor.stop();
+				Sound.beepSequenceUp();
+				angle = odometer.getT();
+				findObject(dist, TB);
+				//moves backward if it is a false positive until the robot is close to the corner
+				leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
+				rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
+				while(true) {
+					if(Math.abs(URx - odometer.getX()) < 10 && Math.abs(URy - odometer.getY()) < 10) {
+						leftMotor.stop(true);
+						rightMotor.stop();
+						break;
 					}
-                    navigation.turnTo(angle-10);
-                }
-            //}
-            if(Math.abs(odometer.getT()-180) <=2) {
-                leftMotor.stop(true);
-                rightMotor.stop();
-                notFinished = false;
-            }
-        }
-//        //search at the fouth corner
-//        notFinished=true;
-//        navigation.travelTo(LLx ,URy);
-//        navigation.turnTo(180);
-//        while(notFinished) {
-//            //leftMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, -90), true);
-//            //rightMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, -90), true);
-//            leftMotor.setSpeed(80);
-//            rightMotor.setSpeed(80);
-//            leftMotor.setAcceleration(500);
-//            rightMotor.setAcceleration(500);
-//            leftMotor.backward();
-//            rightMotor.forward();
-//            //while(leftMotor.isMoving()) {
-//                //double distance = getDistance();
-//                double dist = getDistance();
-//                if(dist< 60) {
-//                    leftMotor.stop(true);
-//                    rightMotor.stop();
-//                    Sound.beepSequenceUp();
-//                    angle = odometer.getT();
-//                    findObject(dist, TB);
-//                    leftMotor.setSpeed(150);
-//                    rightMotor.setSpeed(150);
-//                    leftMotor.setAcceleration(500);
-//                    rightMotor.setAcceleration(500);
-//                    leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-//					rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, -dist), true);
-//					while(true) {
-//						if(Math.abs(LLx - odometer.getX()) < 5 && Math.abs(URy - odometer.getY()) < 5) {
-//							leftMotor.stop(true);
-//							rightMotor.stop();
-//							break;
-//						}
-//					}
-//                    navigation.turnTo(angle+10);
-//                }
-//            //}
-//            if(Math.abs(odometer.getT()-90) <= 8) {
-//                leftMotor.stop(true);
-//                rightMotor.stop();
-//                notFinished = false;
-//            }
-//        }
+				}
+				navigation.turnTo(angle-10);
+			}
+			if(Math.abs(odometer.getT()-180) <=2) {
+				leftMotor.stop(true);
+				rightMotor.stop();
+				notFinished = false;
+			}
+		}
 	}
-	
-	public void findObject(double distance, int TB) {
-		//leftMotor.rotate(convertDistance(Lab5.WHEEL_RAD, distance), true);
-		//rightMotor.rotate(convertDistance(Lab5.WHEEL_RAD, distance), true);
+
+	/**
+	 * this method makes the robot travel straight until the robot reach the target, travel backward
+	 * if it is a false positive
+	 * @param distance
+	 * @param TB
+	 */
+	public boolean findObject(double distance, int TB) {
 		leftMotor.setSpeed(80);
 		rightMotor.setSpeed(80);
 		leftMotor.forward();
@@ -273,7 +179,7 @@ public class Search {
 			if(getDistanceStraight() > distance + 12) {
 				leftMotor.stop(true);
 				rightMotor.stop();
-				return;
+				return false;
 			}
 		}
 		int color = getColor();
@@ -281,31 +187,31 @@ public class Search {
 			LCD.drawString("Object Detected", 0, 0);
 			//LCD.drawString("Red", 0, 1);
 			Sound.beep();
+			return true;
 		}
 		else {
 			Sound.twoBeeps();
+			return false;
 		}
 	}
+	/**
+	 * fetch color sample from the light sensor
+	 * @return
+	 */
 	public int getColor() {
 		sampleProvider = cSensor.getRGBMode();
-	    sampleSize = sampleProvider.sampleSize();
-	    float []colorSample = new float[sampleSize];
+		sampleSize = sampleProvider.sampleSize();
+		float []colorSample = new float[sampleSize];
 		sampleProvider.fetchSample(colorSample, 0);
 		return WhatColor(colorSample[0], colorSample[1], colorSample[2]);
-//		if(ifRed(colorSample[0], colorSample[1], colorSample[2])) {
-//			return 1;
-//		}
-//		if(ifBlue(colorSample[0], colorSample[1], colorSample[2])) {
-//			return 2;
-//		}
-//		if(ifYellow(colorSample[0], colorSample[1], colorSample[2])) {
-//			return 3;
-//		}
-//		if(ifWhite(colorSample[0], colorSample[1], colorSample[2])) {
-//			return 4;
-//		}
-//		return 0;
 	}
+	/**
+	 * this method returns the color the sensor detects
+	 * @param R
+	 * @param G
+	 * @param B
+	 * @return integer that represents the color of the block
+	 */
 	public  int WhatColor(double R, double G, double B) {
 		double sampleSum = R+G+B;
 		double sampleR_Ratio=R/sampleSum;
@@ -332,99 +238,61 @@ public class Search {
 			return 0;
 		}
 	}
-//	public boolean ifRed(float R, float G, float B) {
-//		double dr = redMeanR - R*100;
-//		double dg = redMeanG - G*100;
-//		double db = redMeanB - B*100;
-//		double d = Math.sqrt(dr*dr + dg*dg + db*db);
-//		if(d < thresholdRed) {
-//			return true;
-//		}
-//		return false;
-//	}
-//	public boolean ifBlue(float R, float G, float B) {
-//		double dr = blueMeanR - R*100;
-//		double dg = blueMeanG - G*100;
-//		double db = blueMeanB - B*100;
-//		double d = Math.sqrt(dr*dr + dg*dg + db*db);
-//		if(d < thresholdRed) {
-//			return true;
-//		}
-//		return false;
-//	}
-//	public boolean ifYellow(float R, float G, float B) {
-//		double dr = yellowMeanR - R*100;
-//		double dg = yellowMeanG - G*100;
-//		double db = yellowMeanB - B*100;
-//		double d = Math.sqrt(dr*dr + dg*dg + db*db);
-//		if(d < thresholdRed) {
-//			return true;
-//		}
-//		return false;
-//	}
-//	public boolean ifWhite(float R, float G, float B) {
-//		double dr = whiteMeanR - R*100;
-//		double dg = whiteMeanG - G*100;
-//		double db = whiteMeanB - B*100;
-//		double d = Math.sqrt(dr*dr + dg*dg + db*db);
-//		if(d < thresholdRed) {
-//			return true;
-//		}
-//		return false;
-//	}
+	/**
+	 * this method gets the distance using filter
+	 * @return double-distance 
+	 */
 	public double getDistanceStraight() {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
-        // this instance
+		// this instance
 		float[] usDistance = new float[3];
 		sampleProvider.fetchSample(usDistance, 0);
 		double distance = usDistance[0]*100;
-//		List<Double> distance = new ArrayList<Double>();
-//		//sampleProvider.fetchSample(usDistance, 0);
-//		for(int i = 0; i < 9; i++) {
-//			sampleProvider.fetchSample(usDistance, 0);
-//			LCD.drawString("us Distance: " + usDistance[0], 0, 5);
-//			//distance[i] = usDistance[0]*100;
-//			distance.add((double)usDistance[0]*100);
-//			Delay.msDelay(30);
-//		}
-//		Collections.sort(distance);
-//		return distance.get(9/2);
 		while (distance >= 200 && filterControl < FILTER_OUT) {
-		      // bad value, do not set the distance var, however do increment the
-		      // filter value
-		      filterControl++;
-		 } 
+			// bad value, do not set the distance var, however do increment the
+			// filter value
+			filterControl++;
+		} 
 		if (distance >= 200 && filterControl >= FILTER_OUT) {
 			// We have repeated large values, so there must actually be nothing
 			// there: leave the distance alone
-		    	return distance;
-		 } else {
-		      // distance went below 255: reset filter and leave
-		      // distance alone.
-		      filterControl = 0;
-		      return distance;
-		 }
+			return distance;
+		} else {
+			// distance went below 255: reset filter and leave
+			// distance alone.
+			filterControl = 0;
+			return distance;
+		}
 	}
+	/**
+	 * this method gets the median of the distance sample
+	 * @return double-distance 
+	 */
 	public double getDistanceTurn() {
 		SampleProvider sampleProvider = usSensor.getMode("Distance"); // usDistance provides samples from
-        // this instance
+		// this instance
 		float[] usDistance = new float[3];
 		sampleProvider.fetchSample(usDistance, 0);
-		//return usDistance[0]*100;
-		//double distance = usDistance[0]*100;
 		List<Double> distance = new ArrayList<Double>();
 		sampleProvider.fetchSample(usDistance, 0);
 		for(int i = 0; i < 5; i++) {
 			sampleProvider.fetchSample(usDistance, 0);
 			LCD.drawString("us Distance: " + usDistance[0], 0, 5);
-			//distance[i] = usDistance[0]*100;
 			distance.add((double)usDistance[0]*100);
 			Delay.msDelay(30);
 		}
 		Collections.sort(distance);
 		return distance.get(5/2);
 	}
+	
 
+	/**
+	 * determine if the color is within a threshold
+	 * @param value
+	 * @param target
+	 * @param tolerance
+	 * @return boolean 
+	 */
 	public  boolean whithinRange(double value,double target, double tolerance) {
 		if(Math.abs(value-target)<=tolerance) {
 			return true;
@@ -432,10 +300,18 @@ public class Search {
 			return false;
 		}
 	}
-	
+
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
+	/**
+	 * This method allows the conversion of a distance to the total rotation of each wheel need to
+	 * cover that distance.
+	 * 
+	 * @param radius
+	 * @param distance
+	 * @return
+	 */
 	private static int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}	

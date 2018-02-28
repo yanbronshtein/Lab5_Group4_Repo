@@ -103,11 +103,11 @@ public class Odometer extends OdometerData implements Runnable {
     long updateStart, updateEnd;
     
     double distL, distR, deltaD, deltaT, dx, dy;
-    position = odo.getXYT();
-    double theta = position[2] * Math.PI/180;
 
     while (true) {
       updateStart = System.currentTimeMillis();
+      position = odo.getXYT();
+      double theta = position[2] * Math.PI/180;
 
       leftMotorTachoCount = leftMotor.getTachoCount();
       rightMotorTachoCount = rightMotor.getTachoCount();
@@ -127,6 +127,7 @@ public class Odometer extends OdometerData implements Runnable {
       dx = deltaD * (Math.sin(theta));
       dy = deltaD * (Math.cos(theta));
       odo.update(dx, dy, deltaT * (180/(Math.PI)));
+      //System.out.println(position[0] + "\t" + position[1] + "\t" + position[2] + "\t" + leftMotorTachoCount + "\t" + rightMotorTachoCount + "\t" + distL + "\t" + distR);
       //odo.update(0.5, 1.8, 20.1);
 
       // this ensures that the odometer only runs once every period
