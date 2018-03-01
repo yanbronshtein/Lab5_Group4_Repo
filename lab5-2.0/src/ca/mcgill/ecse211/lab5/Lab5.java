@@ -34,7 +34,7 @@ public class Lab5 {
 	public static int URx = 7;
 	public static int URy = 7;
 	//red-1, blue-2, yellow-3, white-4
-	public static int TB = 4;
+	public static int TB = 3;
 	//starting corner
 	public static int SC = 0;
 
